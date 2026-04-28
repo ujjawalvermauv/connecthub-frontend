@@ -1,0 +1,35 @@
+<div class="dashboard-container">
+  <mat-card class="greeting-card">
+    <h2>{{ greetingText }}, {{ displayName }}!</h2>
+    <p>You have {{ unreadCount }} unread messages</p>
+  </mat-card>
+  <div class="dashboard-grid">
+    <mat-card class="panel recent-chats">
+      <h3>Recent Chats</h3>
+      <!-- TODO: List recent chats -->
+      <div *ngIf="recentChats.length === 0">
+        No conversations yet. Start one!
+      </div>
+      <!-- View all link -->
+    </mat-card>
+    <mat-card class="panel active-rooms">
+      <h3>Active Rooms</h3>
+      <!-- TODO: List user rooms -->
+      <div *ngIf="userRooms.length === 0">
+        You haven't joined any rooms yet.
+      </div>
+      <!-- Browse Rooms button -->
+    </mat-card>
+    <mat-card class="panel notifications">
+      <h3>Notifications</h3>
+      <!-- TODO: List notifications -->
+      <div *ngIf="notifications.length === 0">You're all caught up! 🎉</div>
+      <!-- View all link -->
+    </mat-card>
+  </div>
+  <div class="quick-actions">
+    <button mat-raised-button color="primary">New Message</button>
+    <button mat-raised-button color="accent">Browse Rooms</button>
+    <button mat-raised-button color="warn">My Profile</button>
+  </div>
+</div>

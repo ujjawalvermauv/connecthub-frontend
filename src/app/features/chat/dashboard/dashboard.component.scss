@@ -1,0 +1,30 @@
+.dashboard-container {
+  padding: 24px;
+}
+.greeting-card {
+  margin-bottom: 24px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.panel {
+  min-height: 200px;
+}
+.quick-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
