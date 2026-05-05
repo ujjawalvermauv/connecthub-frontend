@@ -2,7 +2,7 @@ export interface User {
   userId: number;
   userName: string;
   displayName: string;
-  email: string;
+  email?: string;
   avatarUrl?: string | null;
   bio?: string | null;
   isOnline: boolean;

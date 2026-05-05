@@ -10,6 +10,7 @@ import { ChatHubService } from '../../../core/services/chat-hub.service';
 import { MessageService } from '../../../core/services/message.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ActivatedRoute } from '@angular/router';
+import { User } from '../../../core/models/user.model';
 
 interface ChatMessage {
   messageId: number | null;
@@ -41,6 +42,7 @@ export class DirectMessagesComponent implements OnInit, OnDestroy {
   showSearchModal = false;
   searchQuery = '';
   searchResults: any[] = [];
+  private userById = new Map<number, User>();
 
   constructor(
     private chatHubService: ChatHubService,
@@ -50,6 +52,15 @@ export class DirectMessagesComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.authService.getAllUsers().subscribe({
+      next: (users: User[]) => {
+        this.userById = new Map(users.map(u => [u.userId, u]));
+      },
+      error: () => {
+        this.userById.clear();
+      }
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user?.userId ?? null;
       console.log('DirectMessages: currentUserId updated', this.currentUserId);
@@ -122,17 +133,20 @@ export class DirectMessagesComponent implements OnInit, OnDestroy {
       next: (data: any[]) => {
         console.log('loadRecentChats: raw data received', data);
         
-        // 1. Transform raw messages into RecentChat objects if they aren't already
+        // 1. Normalize raw messages/recent-chat rows into a stable shape.
         let processedChats: any[] = data.map(item => {
-          // If it's already a RecentChat (has .user), keep it
-          if (item.user) return item;
+          const otherUserId = this.getOtherUserId(item);
+          const knownUser = otherUserId ? this.userById.get(otherUserId) : undefined;
 
-          // If it's a raw Message object, transform it
-          const otherUserId = item.senderId === this.currentUserId ? item.receiverId : item.senderId;
           return {
-            user: { userId: otherUserId, displayName: 'Loading...', userName: '' },
-            lastMessage: { content: item.content, createdAt: item.sentAt || item.createdAt },
-            unreadCount: item.isRead ? 0 : 1 // Simple heuristic
+            user: {
+              userId: otherUserId,
+              displayName: this.resolveUserName(item, knownUser, otherUserId),
+              userName: knownUser?.userName || item.user?.userName || '',
+              avatarUrl: this.resolveUserAvatar(item, knownUser)
+            },
+            lastMessage: item.lastMessage || { content: item.content, createdAt: item.sentAt || item.createdAt },
+            unreadCount: item.unreadCount ?? (item.isRead ? 0 : 1)
           };
         });
 
@@ -146,38 +160,12 @@ export class DirectMessagesComponent implements OnInit, OnDestroy {
 
         this.recentChats = processedChats;
 
-        // 3. Optimized Lookup: Fetch user list once and fill in all missing names
-        const needsLookup = this.recentChats.some(chat => !chat.user?.userName || chat.user?.displayName === 'Loading...');
-        
-        if (needsLookup) {
-          this.authService.getAllUsers().subscribe(allUsers => {
-            this.recentChats.forEach(chat => {
-              if (!chat.user?.userName || chat.user?.displayName === 'Loading...') {
-                const found = allUsers.find(u => u.userId === chat.user?.userId);
-                if (found) {
-                  chat.user.displayName = found.displayName || found.userName;
-                  chat.user.userName = found.userName;
-                  chat.user.avatarUrl = found.avatarUrl;
-
-                  // Update header if this is the active chat
-                  if (this.selectedUserId === chat.user.userId) {
-                    this.selectedUserName = chat.user.displayName;
-                    this.selectedUserAvatarUrl = chat.user.avatarUrl || null;
-                  }
-                }
-              }
-            });
-          });
-        }
-        
         if (this.selectedUserId) {
           const chat = processedChats.find(c => c.user?.userId === this.selectedUserId);
           if (chat) {
             // Update header info
-            if (chat.user?.displayName !== 'Loading...') {
-              this.selectedUserName = chat.user.displayName || chat.user.userName;
-              this.selectedUserAvatarUrl = chat.user.avatarUrl || null;
-            }
+            this.selectedUserName = chat.user.displayName || chat.user.userName || this.selectedUserName;
+            this.selectedUserAvatarUrl = chat.user.avatarUrl || null;
             // Clear unread count locally for the active chat
             chat.unreadCount = 0;
           }
@@ -342,5 +330,31 @@ export class DirectMessagesComponent implements OnInit, OnDestroy {
     // 3. Select and close
     this.selectUser(user.userId, tempChat.user.displayName, user.avatarUrl);
     this.showSearchModal = false;
+  }
+
+  private getOtherUserId(item: any): number | null {
+    if (!item) return null;
+    if (item.user?.userId) return item.user.userId;
+    if (item.userId) return item.userId;
+    if (item.receiverId != null && item.senderId != null && this.currentUserId != null) {
+      return item.senderId === this.currentUserId ? item.receiverId : item.senderId;
+    }
+    return item.senderId ?? item.receiverId ?? null;
+  }
+
+  private resolveUserName(item: any, knownUser?: User, userId?: number | null): string {
+    return (
+      knownUser?.displayName ||
+      knownUser?.userName ||
+      knownUser?.email?.split('@')[0] ||
+      item.user?.displayName ||
+      item.user?.userName ||
+      item.user?.email?.split('@')[0] ||
+      (userId ? `User ${userId}` : 'Conversation')
+    );
+  }
+
+  private resolveUserAvatar(item: any, knownUser?: User): string | null {
+    return knownUser?.avatarUrl || item.user?.avatarUrl || null;
   }
 }
