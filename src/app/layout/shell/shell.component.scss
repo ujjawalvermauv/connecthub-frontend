@@ -1,0 +1,53 @@
+.shell-container {
+  height: 100vh;
+}
+
+.sidebar-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.shell-sidenav {
+  width: 260px;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.search-bar {
+  width: 250px;
+  margin-right: 16px;
+}
+
+.reconnect-banner {
+  background: #ffe082;
+  color: #333;
+  text-align: center;
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+.main-content {
+  padding: 24px;
+}
+
+/* Active route styling */
+mat-nav-list a[routerLinkActive="active"] {
+  background-color: #f0f0ff;
+  border-left: 4px solid #7f00ff;
+  padding-left: 12px !important;
+  color: #7f00ff;
+  font-weight: 500;
+
+  mat-icon {
+    color: #7f00ff;
+  }
+}

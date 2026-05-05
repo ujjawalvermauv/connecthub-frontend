@@ -1,0 +1,151 @@
+<div class="dashboard-container animate-entrance">
+  <!-- 🔝 Header Area -->
+  <header class="page-topbar">
+    <div class="topbar-left">
+      <button class="mobile-toggle" (click)="toggleSidebar()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <h1 class="display-font">Dashboard Overview</h1>
+    </div>
+    
+    <div class="topbar-right">
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search conversations, files..." />
+      </div>
+      
+      <div class="topbar-actions">
+        <button class="action-circle" title="Notifications" (click)="goTo('/settings')">
+          <mat-icon>notifications_none</mat-icon>
+          <span class="badge" *ngIf="((notificationCount$ | async) ?? 0) > 0"></span>
+        </button>
+        <div class="user-chip" (click)="goTo('/settings')">
+          <div class="avatar-sm">
+            <img *ngIf="currentUser?.avatarUrl" [src]="currentUser.avatarUrl" class="avatar-img" />
+            <span *ngIf="!currentUser?.avatarUrl">{{ initials }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 🍱 Main Content Area -->
+  <div class="dashboard-content">
+    <!-- 👋 Welcome Banner -->
+    <section class="hero-banner">
+      <div class="hero-text">
+        <h2 class="display-font">{{ greetingText }}, {{ displayName }}!</h2>
+        <p class="text-secondary">{{ dateText }} — here's a quick look at your activity.</p>
+      </div>
+      
+      <div class="stats-row">
+        <div class="stat-card glass-card">
+          <div class="icon-box blue">
+            <mat-icon>chat_bubble_outline</mat-icon>
+          </div>
+          <div class="stat-meta">
+            <span class="value">{{ totalUnread }}</span>
+            <span class="label">New Messages</span>
+          </div>
+        </div>
+        
+        <div class="stat-card glass-card">
+          <div class="icon-box green">
+            <mat-icon>groups</mat-icon>
+          </div>
+          <div class="stat-meta">
+            <span class="value">{{ roomCount }}</span>
+            <span class="label">Active Rooms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🗃️ Grid Section -->
+    <div class="main-grid">
+      <!-- Recent Chats -->
+      <div class="grid-panel glass-card">
+        <div class="panel-header">
+          <h3 class="display-font">Recent Conversations</h3>
+          <a class="view-link" routerLink="/messages">View All</a>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="recentChats.length > 0; else noChats" class="item-list">
+            <div *ngFor="let chat of recentChats; let i = index" 
+                 class="list-item" 
+                 (click)="goTo('/messages')">
+              <div class="item-avatar" [style.background]="getAvatarGradient(i)">
+                <img *ngIf="chat.avatarUrl" [src]="chat.avatarUrl" class="avatar-img" />
+                <span *ngIf="!chat.avatarUrl">{{ getInitials(chat.name) }}</span>
+              </div>
+              <div class="item-content">
+                <div class="name">{{ chat.name }}</div>
+                <div class="preview">{{ chat.preview }}</div>
+              </div>
+              <div class="item-meta">
+                <span class="time">{{ chat.timeAgo }}</span>
+                <span class="count" *ngIf="chat.unreadCount > 0">{{ chat.unreadCount }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noChats>
+            <div class="empty-placeholder">
+              <mat-icon>forum</mat-icon>
+              <p>No recent conversations. Start a new one below!</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Active Rooms -->
+      <div class="grid-panel glass-card">
+        <div class="panel-header">
+          <h3 class="display-font">Joined Communities</h3>
+          <a class="view-link" routerLink="/rooms">Explore</a>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="activeRooms.length > 0; else noRooms" class="item-list">
+            <div *ngFor="let room of activeRooms" class="list-item" (click)="goTo('/rooms')">
+              <div class="room-icon">
+                <mat-icon>tag</mat-icon>
+              </div>
+              <div class="item-content">
+                <div class="name">{{ room.name }}</div>
+                <div class="meta-row">
+                  <span>{{ room.memberCount }} members</span>
+                  <span class="badge sm" [ngClass]="room.type">{{ room.type }}</span>
+                </div>
+              </div>
+              <mat-icon class="arrow">chevron_right</mat-icon>
+            </div>
+          </div>
+          <ng-template #noRooms>
+            <div class="empty-placeholder">
+              <mat-icon>explore</mat-icon>
+              <p>You haven't joined any rooms yet.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⚡ Quick Actions -->
+    <section class="quick-actions">
+      <h3 class="display-font">Quick Access</h3>
+      <div class="actions-row">
+        <button class="btn-premium primary" routerLink="/messages">
+          <mat-icon>add</mat-icon>
+          New Message
+        </button>
+        <button class="btn-premium ghost" routerLink="/rooms">
+          <mat-icon>search</mat-icon>
+          Browse Rooms
+        </button>
+        <button class="btn-premium ghost" (click)="goTo('/settings')">
+          <mat-icon>person_outline</mat-icon>
+          My Profile
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

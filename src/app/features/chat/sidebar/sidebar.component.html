@@ -1,0 +1,63 @@
+<aside class="premium-sidebar" [class.is-open]="isOpen">
+  <div class="sidebar-top">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <mat-icon>hub</mat-icon>
+      </div>
+      <span class="display-font">ConnectHub</span>
+      <button class="mobile-close" (click)="closeSidebar()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="section-label">General</span>
+        <div class="nav-links">
+          <a routerLink="/dashboard" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <mat-icon>grid_view</mat-icon>
+            <span>Overview</span>
+          </a>
+          <a routerLink="/messages" class="nav-link" routerLinkActive="active">
+            <mat-icon>chat_bubble_outline</mat-icon>
+            <span>Messenger</span>
+            <span class="nav-badge" *ngIf="totalUnread > 0">{{ totalUnread }}</span>
+          </a>
+          <a routerLink="/rooms" class="nav-link" routerLinkActive="active">
+            <mat-icon>groups</mat-icon>
+            <span>Communities</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="section-label">System</span>
+        <div class="nav-links">
+          <a routerLink="/settings" class="nav-link" routerLinkActive="active">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </a>
+          <a class="nav-link disabled">
+            <mat-icon>help_outline</mat-icon>
+            <span>Support</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-profile" (click)="goTo('/settings')">
+      <div class="user-avatar" [style.background]="getAvatarGradient()">
+        <img *ngIf="currentUser?.avatarUrl" [src]="currentUser.avatarUrl" class="avatar-img" />
+        <span *ngIf="!currentUser?.avatarUrl">{{ initials }}</span>
+        <span class="status-dot"></span>
+      </div>
+      <div class="user-text">
+        <span class="name">{{ displayName }}</span>
+        <span class="status">Online</span>
+      </div>
+      <mat-icon class="more-icon" (click)="$event.stopPropagation(); logout()" title="Logout">logout</mat-icon>
+    </div>
+  </div>
+</aside>

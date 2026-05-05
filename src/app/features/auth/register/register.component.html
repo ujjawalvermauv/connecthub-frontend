@@ -1,0 +1,97 @@
+<div class="auth-wrapper animate-fade-in">
+  <!-- 🎨 Visual Brand Panel -->
+  <div class="brand-panel">
+    <div class="panel-content">
+      <div class="brand-logo glass">
+        <mat-icon>hub</mat-icon>
+      </div>
+      <h1 class="display-font">Join the <br><span class="gradient-text">future of chat.</span></h1>
+      <p>Sign up in seconds and experience real-time connectivity with thousands of communities.</p>
+      
+      <div class="mockup-float glass card-hover">
+        <div class="mockup-header">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="mockup-body">
+          <div class="msg-bubble mini">Welcome to the future! 🛸</div>
+          <div class="msg-bubble mini mine">Let's start chatting. 💬</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔐 Form Panel -->
+  <div class="form-panel">
+    <div class="form-container">
+      <header class="form-header">
+        <h2 class="display-font">Create Account</h2>
+        <p>Start your premium journey today</p>
+      </header>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="premium-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Full Name</label>
+            <div class="input-group">
+              <mat-icon>person_outline</mat-icon>
+              <input type="text" formControlName="displayName" placeholder="John Doe" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Username</label>
+            <div class="input-group">
+              <mat-icon>alternate_email</mat-icon>
+              <input type="text" formControlName="userName" placeholder="johndoe" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Email Address</label>
+          <div class="input-group">
+            <mat-icon>mail_outline</mat-icon>
+            <input type="email" formControlName="email" placeholder="name@company.com" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Password</label>
+          <div class="input-group">
+            <mat-icon>lock_outline</mat-icon>
+            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Min 8 characters" />
+            <button type="button" class="visibility-toggle" (click)="showPassword = !showPassword">
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Confirm Password</label>
+          <div class="input-group">
+            <mat-icon>lock_outline</mat-icon>
+            <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Confirm your password" />
+            <button type="button" class="visibility-toggle" (click)="showConfirmPassword = !showConfirmPassword">
+              <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="error-msg" *ngIf="error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <button type="submit" class="submit-btn primary" [disabled]="registerForm.invalid || loading">
+          <span *ngIf="!loading">Create My Account</span>
+          <div class="loader" *ngIf="loading"></div>
+        </button>
+      </form>
+
+      <footer class="form-footer">
+        <p>Already a member? <a routerLink="/login">Sign in here</a></p>
+      </footer>
+    </div>
+  </div>
+</div>

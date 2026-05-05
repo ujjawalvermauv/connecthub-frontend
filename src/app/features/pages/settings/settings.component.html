@@ -1,0 +1,172 @@
+<div class="settings-layout animate-fade-in">
+  <div class="settings-card glass">
+    <!-- 📑 Sidebar -->
+    <aside class="settings-sidebar">
+      <div class="sidebar-header">
+        <h1 class="display-font gradient-text">Settings</h1>
+        <p>Personalize your experience</p>
+      </div>
+      <nav class="settings-nav">
+        <a class="nav-item" [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')">
+          <mat-icon>person_outline</mat-icon>
+          <span>Profile</span>
+        </a>
+        <a class="nav-item" [class.active]="activeTab === 'security'" (click)="setActiveTab('security')">
+          <mat-icon>shield_outline</mat-icon>
+          <span>Security</span>
+        </a>
+        <a class="nav-item" [class.active]="activeTab === 'notifications'" (click)="setActiveTab('notifications')">
+          <mat-icon>notifications_none</mat-icon>
+          <span>Notifications</span>
+        </a>
+        <a class="nav-item" [class.active]="activeTab === 'appearance'" (click)="setActiveTab('appearance')">
+          <mat-icon>palette_outline</mat-icon>
+          <span>Appearance</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- 📝 Content -->
+    <main class="settings-main" [ngSwitch]="activeTab">
+      <!-- Profile Tab -->
+      <div *ngSwitchCase="'profile'" class="tab-content animate-fade-in">
+        <div class="content-header">
+          <h2 class="display-font">Profile Information</h2>
+          <p class="text-secondary">This information is visible to other members of ConnectHub.</p>
+        </div>
+
+        <div class="profile-hero">
+          <div class="avatar-xl" [style.background]="'linear-gradient(135deg, var(--ch-primary), var(--ch-accent))'">
+            <img *ngIf="avatarPreviewUrl || user.avatarUrl" [src]="avatarPreviewUrl || user.avatarUrl" class="avatar-img" />
+            <span *ngIf="!avatarPreviewUrl && !user.avatarUrl">
+              {{ user.displayName?.charAt(0) || user.userName?.charAt(0) }}
+            </span>
+          </div>
+          <div class="hero-actions">
+            <input type="file" #avatarInput style="display: none" (change)="onAvatarSelected($event)" accept="image/*" />
+            <button class="action-btn primary sm" (click)="avatarInput.click()">
+              <mat-icon>photo_camera</mat-icon>
+              {{ selectedAvatarFile ? 'Change Photo' : 'Update Avatar' }}
+            </button>
+            <button *ngIf="selectedAvatarFile" class="action-btn success sm" (click)="saveProfile()">
+              <mat-icon>check</mat-icon>
+              Save New Avatar
+            </button>
+            <button class="action-btn glass sm" (click)="removeAvatar()">Remove</button>
+          </div>
+        </div>
+
+        <form (ngSubmit)="saveProfile()" class="settings-form">
+          <!-- ... (keep existing form fields) ... -->
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Display Name</label>
+              <div class="input-box">
+                <mat-icon>badge</mat-icon>
+                <input type="text" [(ngModel)]="user.displayName" name="displayName" placeholder="How others see you" />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Username</label>
+              <div class="input-box disabled">
+                <mat-icon>lock</mat-icon>
+                <input type="text" [(ngModel)]="user.userName" name="userName" readonly />
+              </div>
+              <span class="hint">Your unique &#64;handle cannot be changed.</span>
+            </div>
+
+            <div class="form-field full">
+              <label>Email Address</label>
+              <div class="input-box">
+                <mat-icon>alternate_email</mat-icon>
+                <input type="email" [(ngModel)]="user.email" name="email" placeholder="you@example.com" />
+              </div>
+            </div>
+
+            <div class="form-field full">
+              <label>Bio</label>
+              <div class="input-box area">
+                <textarea [(ngModel)]="user.bio" name="bio" placeholder="Tell the world about yourself..." rows="4"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-footer">
+            <button type="button" class="action-btn glass sm">Discard Changes</button>
+            <button class="action-btn primary sm" type="submit">Save Profile</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Security Tab -->
+      <div *ngSwitchCase="'security'" class="tab-content animate-fade-in">
+        <div class="content-header">
+          <h2 class="display-font">Security Settings</h2>
+          <p class="text-secondary">Manage your password and account security.</p>
+        </div>
+        <div class="settings-group glass-card">
+          <div class="setting-item">
+            <div class="item-text">
+              <h4>Change Password</h4>
+              <p>Update your secret key frequently.</p>
+            </div>
+            <button class="btn-premium primary sm">Update</button>
+          </div>
+          <div class="setting-item">
+            <div class="item-text">
+              <h4>Two-Factor Authentication</h4>
+              <p>Add an extra layer of protection.</p>
+            </div>
+            <button class="btn-premium ghost sm">Enable</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications Tab -->
+      <div *ngSwitchCase="'notifications'" class="tab-content animate-fade-in">
+        <div class="content-header">
+          <h2 class="display-font">Notification Preferences</h2>
+          <p class="text-secondary">Control how you receive alerts.</p>
+        </div>
+        <div class="settings-group glass-card">
+          <div class="setting-item">
+            <div class="item-text">
+              <h4>Direct Messages</h4>
+              <p>Get notified when someone sends you a message.</p>
+            </div>
+            <div class="toggle-switch active"></div>
+          </div>
+          <div class="setting-item">
+            <div class="item-text">
+              <h4>Community Updates</h4>
+              <p>Alerts from your joined communities.</p>
+            </div>
+            <div class="toggle-switch"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appearance Tab -->
+      <div *ngSwitchCase="'appearance'" class="tab-content animate-fade-in">
+        <div class="content-header">
+          <h2 class="display-font">Appearance & Theme</h2>
+          <p class="text-secondary">Customize the look and feel of ConnectHub.</p>
+        </div>
+        <div class="settings-group glass-card">
+          <div class="setting-item">
+            <div class="item-text">
+              <h4>Dark Mode</h4>
+              <p>Easier on the eyes in low-light environments.</p>
+            </div>
+            <div class="theme-toggle" [class.dark]="isDarkMode" (click)="toggleDarkMode()">
+              <div class="toggle-circle">
+                <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

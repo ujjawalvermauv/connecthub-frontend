@@ -1,0 +1,14 @@
+.auth-callback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  .card {
+    background: var(--card-bg, #fff);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+}

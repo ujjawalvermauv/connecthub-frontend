@@ -1,0 +1,143 @@
+<div class="dm-layout animate-entrance">
+  <!-- 🗂️ Sidebar -->
+  <aside class="conversations-sidebar">
+    <header class="sidebar-header">
+      <h2 class="display-font">Messages</h2>
+      <button class="action-circle" (click)="toggleNewChat()" title="New Chat">
+        <mat-icon>add</mat-icon>
+      </button>
+    </header>
+
+    <div class="sidebar-search">
+      <div class="search-input-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search conversations..." />
+      </div>
+    </div>
+
+    <div class="conversation-list">
+      <div *ngIf="recentChats.length > 0; else noChats" class="convo-items">
+        <div *ngFor="let chat of recentChats; let i = index" 
+             class="convo-item" 
+             [class.active]="selectedUserId === chat?.user?.userId"
+             (click)="selectUser(chat?.user?.userId)">
+          <div class="user-avatar" [style.background]="'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+            <img *ngIf="chat?.user?.avatarUrl" [src]="chat.user.avatarUrl" class="avatar-img" />
+            <span *ngIf="!chat?.user?.avatarUrl">{{ chat?.user?.displayName?.charAt(0) || chat?.user?.userName?.charAt(0) || '?' }}</span>
+          </div>
+          <div class="convo-details">
+            <div class="convo-name">{{ chat?.user?.displayName || chat?.user?.userName || 'User' }}</div>
+            <div class="convo-preview">{{ chat?.lastMessage?.content || 'No messages yet' }}</div>
+          </div>
+          <div class="convo-meta">
+            <span class="unread" *ngIf="chat.unreadCount > 0">{{ chat.unreadCount }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #noChats>
+        <div class="empty-list">
+          <mat-icon>chat_bubble_outline</mat-icon>
+          <p>No active conversations</p>
+        </div>
+      </ng-template>
+    </div>
+  </aside>
+
+  <!-- 💬 Chat Area -->
+  <main class="chat-window">
+    <ng-container *ngIf="selectedUserId; else noSelection">
+      <header class="chat-header">
+        <div class="user-meta">
+          <div class="avatar-sm" [style.background]="'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+            <img *ngIf="selectedUserAvatarUrl" [src]="selectedUserAvatarUrl" class="avatar-img" />
+            <span *ngIf="!selectedUserAvatarUrl">{{ selectedUserName.charAt(0) }}</span>
+          </div>
+          <div class="text-meta">
+            <h3 class="display-font">{{ selectedUserName }}</h3>
+            <span class="status-text online">Active Now</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn-ghost"><mat-icon>more_vert</mat-icon></button>
+        </div>
+      </header>
+
+      <div class="message-scroller" #messageContainer>
+        <div *ngFor="let msg of messages" class="msg-row" [class.is-mine]="msg.senderId === currentUserId">
+          <div class="msg-bubble shadow-sm">
+            <div class="msg-content">{{ msg.content }}</div>
+            <div class="msg-footer">
+              <span class="msg-time">{{ msg.createdAt | date:'shortTime' }}</span>
+              <mat-icon *ngIf="msg.senderId === currentUserId" class="status-icon" [class.is-read]="msg.isRead">
+                {{ msg.isRead ? 'done_all' : 'done' }}
+              </mat-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="chat-footer">
+        <div class="footer-inner">
+          <button class="attach-btn"><mat-icon>add_circle_outline</mat-icon></button>
+          <div class="input-wrapper">
+            <input type="text" [(ngModel)]="draft" (keyup.enter)="send()" placeholder="Type your message..." />
+          </div>
+          <button class="btn-premium primary sm send-btn" [disabled]="!draft.trim()" (click)="send()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </footer>
+    </ng-container>
+
+    <ng-template #noSelection>
+      <div class="no-selection">
+        <div class="hero-content">
+          <div class="hero-icon-box">
+            <mat-icon>chat</mat-icon>
+          </div>
+          <h2 class="display-font">Your Workspace Messenger</h2>
+          <p>Select a conversation from the sidebar or start a new one to connect with your team instantly.</p>
+          <button class="btn-premium primary" (click)="toggleNewChat()">
+            <mat-icon>add</mat-icon>
+            Start a New Chat
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </main>
+
+  <!-- 🔍 Search Modal Overlay -->
+  <div class="search-overlay" *ngIf="showSearchModal" (click)="showSearchModal = false">
+    <div class="search-modal glass-card animate-scale-up" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h3 class="display-font">Start New Chat</h3>
+        <button class="close-btn" (click)="showSearchModal = false"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="modal-body">
+        <div class="search-box">
+          <mat-icon>search</mat-icon>
+          <input type="text" [(ngModel)]="searchQuery" (input)="onSearchUsers()" placeholder="Search by name or email..." autoFocus />
+        </div>
+        <div class="results-list">
+          <div *ngFor="let user of searchResults" class="result-item" (click)="startChat(user)">
+            <div class="user-avatar-sm" [style.background]="'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+              <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="avatar-img" />
+              <span *ngIf="!user.avatarUrl">{{ user.displayName?.charAt(0) || user.userName?.charAt(0) }}</span>
+            </div>
+            <div class="user-info">
+              <span class="name">{{ user.displayName || user.userName }}</span>
+              <span class="email">{{ user.email }}</span>
+            </div>
+            <mat-icon class="arrow">chevron_right</mat-icon>
+          </div>
+          <div *ngIf="searchQuery.length >= 2 && searchResults.length === 0" class="no-results">
+            No users found matching "{{ searchQuery }}"
+          </div>
+          <div *ngIf="searchQuery.length < 2" class="search-prompt">
+            Type at least 2 characters to search...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

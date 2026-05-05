@@ -1,0 +1,80 @@
+<div class="rooms-container animate-entrance">
+  <header class="rooms-header">
+    <div class="header-text">
+      <h1 class="display-font">Communities</h1>
+      <p>Discover and join spaces that spark your interest.</p>
+    </div>
+    <button class="btn-premium primary shadow" (click)="createRoom()">
+      <mat-icon>add</mat-icon>
+      Create Community
+    </button>
+  </header>
+
+  <div class="rooms-grid">
+    <div *ngFor="let room of rooms" class="room-card glass-card hover-effect">
+      <div class="card-top">
+        <div class="members">
+          <mat-icon>group</mat-icon>
+          <span>{{ room.memberCount }}</span>
+        </div>
+        <span class="type-badge" [ngClass]="room.type">{{ room.type }}</span>
+      </div>
+      
+      <div class="card-main">
+        <h3 class="display-font">{{ room.name }}</h3>
+        <p class="description">{{ room.description }}</p>
+      </div>
+      
+      <div class="card-footer">
+        <div class="activity">
+          <mat-icon>history</mat-icon>
+          <span>Active {{ room.lastActive || 'recently' }}</span>
+        </div>
+        <div class="actions">
+          <button class="btn-premium ghost sm" (click)="viewRoom(room.id)">View</button>
+          <button class="btn-premium primary sm" (click)="joinRoom(room.id)">Join</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🏠 Create Community Modal -->
+  <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+    <div class="modal-card glass-card animate-scale-up" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h3 class="display-font">Create New Community</h3>
+        <button class="close-btn" (click)="showCreateModal = false"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Community Name</label>
+          <div class="input-box">
+            <mat-icon>groups</mat-icon>
+            <input type="text" [(ngModel)]="newRoom.name" placeholder="e.g. Design Enthusiasts" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <div class="input-box area">
+            <textarea [(ngModel)]="newRoom.description" placeholder="What is this community about?" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Visibility</label>
+          <div class="select-row">
+            <button class="type-btn" [class.active]="newRoom.type === 'PUBLIC'" (click)="newRoom.type = 'PUBLIC'">
+              <mat-icon>public</mat-icon> Public
+            </button>
+            <button class="type-btn" [class.active]="newRoom.type === 'PRIVATE'" (click)="newRoom.type = 'PRIVATE'">
+              <mat-icon>lock</mat-icon> Private
+            </button>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-premium ghost" (click)="showCreateModal = false">Cancel</button>
+        <button class="btn-premium primary" [disabled]="!newRoom.name" (click)="submitCreateRoom()">Create Now</button>
+      </footer>
+    </div>
+  </div>
+</div>
