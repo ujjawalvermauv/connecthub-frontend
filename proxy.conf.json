@@ -1,14 +1,33 @@
 {
-    "/api": {
-        "target": "http://localhost:5000",
+    "/api/users": {
+        "target": "http://localhost:5001",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
+    },
+    "/api/auth": {
+        "target": "http://localhost:5001",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
+    },
+    "/api/messages/recent": {
+        "target": "http://localhost:5003",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug"
+    },
+    "/api/messages": {
+        "target": "http://localhost:5002",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug"
     },
     "/hubs": {
-        "target": "http://localhost:5000",
+        "target": "http://localhost:5003",
         "secure": false,
         "changeOrigin": true,
-        "ws": true
+        "ws": true,
+        "logLevel": "debug"
     }
 }

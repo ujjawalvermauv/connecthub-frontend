@@ -10,6 +10,7 @@ import { MessageService, RecentChat } from '../../../core/services/message.servi
 import { RoomService, ChatRoom } from '../../../core/services/room.service';
 import { SidebarService } from '../../../core/services/sidebar.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ChatHubService } from '../../../core/services/chat-hub.service';
 import { User } from '../../../core/models/user.model';
 import { Router } from '@angular/router';
 
@@ -44,6 +45,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
   private chatSub?: Subscription;
   private roomSub?: Subscription;
+  private recentChatsSub?: Subscription;
+  
+  /**
+   * Handler for incoming messages.
+   * Updates recent chats list when a new message arrives.
+   */
+  private receiveMessageHandler = (message: any) => {
+    if (!this.currentUser?.userId || !message) {
+      console.warn('Dashboard: receiveMessageHandler - Invalid currentUser or message');
+      return;
+    }
+    
+    console.log('Dashboard: ReceiveMessage event - updating recent chats', {
+      messageId: message.messageId,
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+      content: message.content?.substring(0, 50) + '...'
+    });
+    
+    this.messageService.handleIncomingMessage(message, this.currentUser.userId);
+    this.reloadRecentChats(this.currentUser.userId);
+  };
 
   constructor(
     private authService: AuthService,
@@ -51,6 +74,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private roomService: RoomService,
     private sidebarService: SidebarService,
     private notificationService: NotificationService,
+    private chatHubService: ChatHubService,
     private router: Router
   ) { 
     this.notificationCount$ = this.notificationService.unreadCount$;
@@ -63,11 +87,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
+    this.recentChatsSub = this.messageService.recentChats$.subscribe(() => {
+      this.applyCachedRecentChats();
+    });
+
     this.greetingText = this.getGreeting();
 
     this.authService.getAllUsers().subscribe({
       next: (users: User[]) => {
         this.userById = new Map(users.map(u => [u.userId, u]));
+        this.applyCachedRecentChats();
+        if (this.currentUser?.userId && !isNaN(this.currentUser.userId)) {
+          this.reloadRecentChats(this.currentUser.userId);
+        }
       },
       error: () => {
         this.userById.clear();
@@ -85,26 +117,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         user.email?.split('@')[0] ||
         'User';
 
+      this.applyCachedRecentChats();
+
       if (!user.userId || isNaN(user.userId)) return;
 
-      this.chatSub = this.messageService.getRecentChats(user.userId).subscribe({
-        next: (chats: RecentChat[]) => {
-          const slice = Array.isArray(chats) ? chats.slice(0, 5) : [];
-          this.recentChats = slice.map(c => ({
-            userId: c.user?.userId ?? (c as any)?.userId ?? this.getOtherUserId(c as any),
-            name: this.resolveChatName(c as any),
-            avatarUrl: this.resolveChatAvatar(c as any),
-            preview: c.lastMessage?.content || '',
-            timeAgo: this.timeAgo(c.lastMessage?.createdAt),
-            isOnline: false,
-            unreadCount: c.unreadCount || 0
-          }));
-          this.unreadCount = slice.reduce((s, c) => s + (c.unreadCount || 0), 0);
-        },
-        error: () => {
-          this.recentChats = [];
-        }
-      });
+      this.reloadRecentChats(user.userId);
 
       // rooms
       this.roomSub = this.roomService.getUserRooms().subscribe({
@@ -117,13 +134,88 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
       // notifications
       this.notificationService.getNotifications(user.userId).subscribe();
+
+      // Setup SignalR for real-time message updates
+      this.setupSignalR();
     });
+  }
+
+  private reloadRecentChats(userId: number): void {
+    this.chatSub?.unsubscribe();
+    this.chatSub = this.messageService.getRecentChats(userId).subscribe({
+        next: (chats: RecentChat[]) => {
+          this.messageService.setRecentChats(chats);
+          const slice = Array.isArray(chats) ? chats.slice(0, 5) : [];
+          this.recentChats = slice.map(c => ({
+            userId: c.user?.userId ?? (c as any)?.userId ?? this.getOtherUserId(c as any),
+            name: this.resolveChatName(c as any),
+            avatarUrl: this.resolveChatAvatar(c as any),
+            preview: c.lastMessage?.content || '',
+            timeAgo: this.timeAgo(c.lastMessage?.createdAt),
+            isOnline: false,
+            unreadCount: c.unreadCount || 0
+          }));
+          this.unreadCount = slice.reduce((s, c) => s + (c.unreadCount || 0), 0);
+        },
+        error: (err) => {
+          console.error('reloadRecentChats error:', err);
+          // Keep cached chats on error
+          this.applyCachedRecentChats();
+        }
+      });
+  }
+
+  private applyCachedRecentChats(): void {
+    const chats = this.messageService.getRecentChatsSnapshot();
+    const slice = Array.isArray(chats) ? chats.slice(0, 5) : [];
+    if (slice.length === 0) {
+      this.recentChats = [];
+      this.unreadCount = 0;
+      return;
+    }
+
+    this.recentChats = slice.map(c => ({
+      userId: c.user?.userId ?? (c as any)?.userId ?? this.getOtherUserId(c as any),
+      name: this.resolveChatName(c as any),
+      avatarUrl: this.resolveChatAvatar(c as any),
+      preview: c.lastMessage?.content || '',
+      timeAgo: this.timeAgo(c.lastMessage?.createdAt),
+      isOnline: false,
+      unreadCount: c.unreadCount || 0
+    }));
+    this.unreadCount = slice.reduce((s, c) => s + (c.unreadCount || 0), 0);
+  }
+
+  private async setupSignalR(): Promise<void> {
+    try {
+      const currentState = this.chatHubService.getConnectionState();
+      console.log('Dashboard: Setting up SignalR. Current state:', currentState);
+      
+      if (currentState === 'Disconnected') {
+        console.log('Dashboard: Starting SignalR connection...');
+        await this.chatHubService.start();
+        console.log('Dashboard: SignalR connection started successfully');
+      } else {
+        console.log('Dashboard: SignalR already connected or connecting');
+      }
+      
+      // Register message handler
+      this.chatHubService.on<any>('ReceiveMessage', this.receiveMessageHandler);
+      console.log('Dashboard: ReceiveMessage handler registered');
+    } catch (error) {
+      console.error('Dashboard: SignalR connection failed', error);
+    }
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
     this.chatSub?.unsubscribe();
     this.roomSub?.unsubscribe();
+    this.recentChatsSub?.unsubscribe();
+    
+    // Unregister SignalR handlers
+    this.chatHubService.off('ReceiveMessage', this.receiveMessageHandler);
+    console.log('Dashboard: Component destroyed, SignalR handlers unregistered');
   }
 
   private getGreeting(): string {
@@ -179,6 +271,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   goTo(path: string): void {
     if (!path) return;
     this.router.navigateByUrl(path);
+  }
+
+  goToNotifications(): void {
+    this.router.navigateByUrl('/notifications');
   }
 
   private timeAgo(dateStr?: string): string {

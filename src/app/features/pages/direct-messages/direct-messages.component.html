@@ -21,7 +21,13 @@
           *ngFor="let chat of recentChats; let i = index"
           class="convo-item"
           [class.active]="selectedUserId === chat?.user?.userId"
-          (click)="selectUser(chat?.user?.userId)"
+          (click)="
+            selectUser(
+              chat?.user?.userId,
+              chat?.user?.displayName || chat?.user?.userName,
+              chat?.user?.avatarUrl
+            )
+          "
         >
           <div
             class="user-avatar"
@@ -32,6 +38,14 @@
             <img
               *ngIf="chat?.user?.avatarUrl"
               [src]="chat.user.avatarUrl"
+              alt="{{
+                (chat?.user?.displayName || chat?.user?.userName || 'User') +
+                  ' avatar'
+              }}"
+              title="{{
+                (chat?.user?.displayName || chat?.user?.userName || 'User') +
+                  ' avatar'
+              }}"
               class="avatar-img"
             />
             <span *ngIf="!chat?.user?.avatarUrl">{{
@@ -84,6 +98,8 @@
             <img
               *ngIf="selectedUserAvatarUrl"
               [src]="selectedUserAvatarUrl"
+              alt="{{ selectedUserName + ' avatar' }}"
+              title="{{ selectedUserName + ' avatar' }}"
               class="avatar-img"
             />
             <span *ngIf="!selectedUserAvatarUrl">{{
@@ -107,7 +123,19 @@
           [class.is-mine]="msg.senderId === currentUserId"
         >
           <div class="msg-bubble shadow-sm">
-            <div class="msg-content">{{ msg.content }}</div>
+            <div class="msg-content">
+              <div *ngIf="msg.mediaUrl" class="message-image-container">
+                <img
+                  [src]="msg.mediaUrl"
+                  class="chat-image"
+                  alt="Shared image"
+                />
+              </div>
+
+              <div *ngIf="msg.content?.trim()" class="message-text">
+                {{ msg.content }}
+              </div>
+            </div>
             <div class="msg-footer">
               <span class="msg-time">{{
                 msg.createdAt | date: "shortTime"
@@ -125,10 +153,39 @@
       </div>
 
       <footer class="chat-footer">
+        <!-- ✅ PHASE 4: IMAGE PREVIEW SECTION -->
+        <div *ngIf="selectedImagePreview" class="image-preview-container">
+          <div class="preview-wrapper">
+            <img
+              [src]="selectedImagePreview"
+              class="preview-image"
+              alt="Selected image preview"
+            />
+            <button
+              type="button"
+              class="remove-preview-btn"
+              (click)="removeSelectedImage()"
+              title="Remove image"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
         <div class="footer-inner">
-          <button class="attach-btn">
-            <mat-icon>add_circle_outline</mat-icon>
-          </button>
+          <!-- IMAGE UPLOAD BUTTON -->
+          <label class="attach-btn">
+            <mat-icon>add_photo_alternate</mat-icon>
+
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              (change)="onFileSelected($event)"
+            />
+          </label>
+
+          <!-- MESSAGE INPUT -->
           <div class="input-wrapper">
             <input
               type="text"
@@ -137,9 +194,11 @@
               placeholder="Type your message..."
             />
           </div>
+
+          <!-- SEND BUTTON -->
           <button
             class="btn-premium primary sm send-btn"
-            [disabled]="!draft.trim()"
+            [disabled]="!draft.trim() && !selectedImageFile"
             (click)="send()"
           >
             <mat-icon>send</mat-icon>
@@ -210,6 +269,12 @@
               <img
                 *ngIf="user.avatarUrl"
                 [src]="user.avatarUrl"
+                alt="{{
+                  (user.displayName || user.userName || 'User') + ' avatar'
+                }}"
+                title="{{
+                  (user.displayName || user.userName || 'User') + ' avatar'
+                }}"
                 class="avatar-img"
               />
               <span *ngIf="!user.avatarUrl">{{

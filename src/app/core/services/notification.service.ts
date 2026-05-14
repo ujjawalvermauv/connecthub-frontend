@@ -5,12 +5,13 @@ import { tap } from 'rxjs/operators';
 import { Notification } from '../models/notification.model';
 import { NotificationHubService } from './notification-hub.service';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = '/api/notifications';
+  private apiUrl = environment.apiBaseUrl ? `${environment.apiBaseUrl}/api/notifications` : '/api/notifications';
   
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   notifications$ = this.notificationsSubject.asObservable();

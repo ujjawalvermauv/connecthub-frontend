@@ -16,21 +16,26 @@
 
       <div class="topbar-actions">
         <button
-          class="action-circle"
+          class="action-circle notification-action"
           title="Notifications"
-          (click)="goTo('/settings')"
+          (click)="goToNotifications()"
         >
           <mat-icon>notifications_none</mat-icon>
-          <span
-            class="badge"
-            *ngIf="((notificationCount$ | async) ?? 0) > 0"
-          ></span>
+          <span class="badge" *ngIf="((notificationCount$ | async) ?? 0) > 0">
+            {{
+              ((notificationCount$ | async) ?? 0) > 99
+                ? "99+"
+                : ((notificationCount$ | async) ?? 0)
+            }}
+          </span>
         </button>
-        <div class="user-chip" (click)="goTo('/settings')">
+        <div class="user-chip profile-chip" (click)="goTo('/settings')">
           <div class="avatar-sm">
             <img
               *ngIf="currentUser?.avatarUrl"
               [src]="currentUser.avatarUrl"
+              [alt]="displayName + ' avatar'"
+              title="{{ displayName + ' avatar' }}"
               class="avatar-img"
             />
             <span *ngIf="!currentUser?.avatarUrl">{{ initials }}</span>
@@ -96,6 +101,8 @@
                 <img
                   *ngIf="chat.avatarUrl"
                   [src]="chat.avatarUrl"
+                  [alt]="chat.name + ' avatar'"
+                  title="{{ chat.name + ' avatar' }}"
                   class="avatar-img"
                 />
                 <span *ngIf="!chat.avatarUrl">{{

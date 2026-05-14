@@ -57,6 +57,13 @@ const routes: Routes = [
         component: SettingsComponent
       },
 
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/notifications.component')
+            .then(m => m.NotificationsComponent)
+      },
+
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

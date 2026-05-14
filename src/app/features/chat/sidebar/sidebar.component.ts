@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription } from 'rxjs';
 
 import { MessageService } from '../../../core/services/message.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SidebarService } from '../../../core/services/sidebar.service';
-import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -24,33 +24,39 @@ import { NotificationService } from '../../../core/services/notification.service
 export class SidebarComponent implements OnInit {
 
   currentUser: any = null;
-  totalUnread = 0;
+  messageUnreadCount = 0;
   isOpen = false;
+  private subscriptions = new Subscription();
 
   constructor(
     private authService: AuthService,
     private messageService: MessageService,
     private sidebarService: SidebarService,
-    private notificationService: NotificationService,
     public router: Router
   ) { }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.subscriptions.add(this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
         this.loadUnreadCount();
+      } else {
+        this.messageUnreadCount = 0;
       }
-    });
+    }));
 
-    this.sidebarService.sidebarOpen$.subscribe((open: boolean) => {
+    this.subscriptions.add(this.messageService.unreadCount$.subscribe(count => {
+      this.messageUnreadCount = count;
+    }));
+
+    this.subscriptions.add(this.sidebarService.sidebarOpen$.subscribe((open: boolean) => {
       this.isOpen = open;
-    });
+    }));
 
-    // Subscribe to notification count for real-time badge updates
-    this.notificationService.unreadCount$.subscribe(count => {
-      this.totalUnread = count;
-    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   closeSidebar(): void {
@@ -60,7 +66,8 @@ export class SidebarComponent implements OnInit {
   loadUnreadCount(): void {
     if (!this.currentUser || !this.currentUser.userId || isNaN(this.currentUser.userId)) return;
     this.messageService.getRecentChats(this.currentUser.userId).subscribe(chats => {
-      this.totalUnread = chats.reduce((acc, chat) => acc + chat.unreadCount, 0);
+      this.messageUnreadCount = chats.reduce((acc, chat) => acc + chat.unreadCount, 0);
+      this.messageService.setRecentChats(chats);
     });
   }
 

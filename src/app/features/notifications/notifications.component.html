@@ -1,0 +1,96 @@
+<div class="notifications-page animate-entrance">
+  <header class="notifications-hero glass-card">
+    <div>
+      <p class="eyebrow">Alerts</p>
+      <h1 class="display-font">Notifications</h1>
+      <p class="subtitle">
+        Track mentions, messages, invites, and platform updates in one place.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <div class="pill-count">
+        <span class="count">{{ unreadCount }}</span>
+        <span class="label">Unread</span>
+      </div>
+      <button
+        class="action-btn action-btn-primary"
+        (click)="markAllAsRead()"
+        [disabled]="unreadCount === 0"
+      >
+        Mark all as read
+      </button>
+      <button class="action-btn action-btn-ghost" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to dashboard
+      </button>
+    </div>
+  </header>
+
+  <section class="notifications-list glass-card">
+    <div class="loading-state" *ngIf="loading">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Loading notifications...</p>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div *ngIf="notifications.length > 0; else emptyState" class="list-items">
+        <article
+          *ngFor="let notification of notifications"
+          class="notification-item"
+          [class.unread]="!notification.isRead"
+        >
+          <div class="icon-badge" [class.read]="notification.isRead">
+            <mat-icon>{{ getTypeIcon(notification.type) }}</mat-icon>
+          </div>
+
+          <div class="content">
+            <div class="title-row">
+              <h3>{{ notification.title }}</h3>
+              <span class="type-chip">{{
+                getTypeLabel(notification.type)
+              }}</span>
+            </div>
+            <p>{{ notification.message }}</p>
+            <div class="meta-row">
+              <span>{{ notification.sentAt | date: "medium" }}</span>
+              <span *ngIf="notification.relatedType">{{
+                notification.relatedType
+              }}</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="action-btn icon-action"
+              *ngIf="!notification.isRead"
+              (click)="markAsRead(notification.notificationId)"
+              title="Mark as read"
+            >
+              <mat-icon>done</mat-icon>
+              <span>Read</span>
+            </button>
+            <div *ngIf="notification.isRead" class="read-chip">
+              <mat-icon>check_circle</mat-icon>
+              <span>Read</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <mat-icon>notifications_off</mat-icon>
+          <h3>No notifications yet</h3>
+          <p>
+            When someone mentions you, invites you to a room, or sends a
+            message, it will show up here.
+          </p>
+          <button class="action-btn action-btn-primary" (click)="goBack()">
+            Return to dashboard
+          </button>
+        </div>
+      </ng-template>
+    </ng-container>
+  </section>
+</div>

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface ChatRoom {
   id: number;
@@ -16,7 +17,7 @@ export interface ChatRoom {
 })
 export class RoomService {
 
-  private apiUrl = '/api/rooms';
+  private apiUrl = environment.apiBaseUrl ? `${environment.apiBaseUrl}/api/rooms` : '/api/rooms';
 
   constructor(private http: HttpClient) {}
 

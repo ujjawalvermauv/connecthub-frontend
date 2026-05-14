@@ -5,9 +5,14 @@
       <div class="brand-logo glass">
         <mat-icon>hub</mat-icon>
       </div>
-      <h1 class="display-font">Elevate your <br><span class="gradient-text">communication.</span></h1>
-      <p>ConnectHub delivers ultra-fast, secure, and real-time messaging across all your devices.</p>
-      
+      <h1 class="display-font">
+        Elevate your <br /><span class="gradient-text">communication.</span>
+      </h1>
+      <p>
+        ConnectHub delivers ultra-fast, secure, and real-time messaging across
+        all your devices.
+      </p>
+
       <div class="mockup-float glass card-hover">
         <div class="mockup-header">
           <span class="dot"></span>
@@ -16,7 +21,9 @@
         </div>
         <div class="mockup-body">
           <div class="msg-bubble mini">Hey, did you see the new update? 🚀</div>
-          <div class="msg-bubble mini mine">Just now! It looks incredible. ✨</div>
+          <div class="msg-bubble mini mine">
+            Just now! It looks incredible. ✨
+          </div>
         </div>
       </div>
     </div>
@@ -33,19 +40,44 @@
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="premium-form">
         <div class="form-field">
           <label>Email Address</label>
-          <div class="input-group" [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          <div
+            class="input-group"
+            [class.error]="
+              loginForm.get('email')?.invalid && loginForm.get('email')?.touched
+            "
+          >
             <mat-icon>mail_outline</mat-icon>
-            <input type="email" formControlName="email" placeholder="name@company.com" />
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="name@company.com"
+            />
           </div>
         </div>
 
         <div class="form-field">
           <label>Secret Password</label>
-          <div class="input-group" [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <div
+            class="input-group"
+            [class.error]="
+              loginForm.get('password')?.invalid &&
+              loginForm.get('password')?.touched
+            "
+          >
             <mat-icon>lock_outline</mat-icon>
-            <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" />
-            <button type="button" class="visibility-toggle" (click)="showPassword = !showPassword">
-              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              class="visibility-toggle"
+              (click)="showPassword = !showPassword"
+            >
+              <mat-icon>{{
+                showPassword ? "visibility_off" : "visibility"
+              }}</mat-icon>
             </button>
           </div>
         </div>
@@ -55,7 +87,11 @@
           <span>{{ errorMessage }}</span>
         </div>
 
-        <button type="submit" class="submit-btn primary" [disabled]="loginForm.invalid || isLoading">
+        <button
+          type="submit"
+          class="submit-btn primary"
+          [disabled]="loginForm.invalid || isLoading"
+        >
           <span *ngIf="!isLoading">Sign in to ConnectHub</span>
           <div class="loader" *ngIf="isLoading"></div>
         </button>
@@ -70,7 +106,9 @@
       </form>
 
       <footer class="form-footer">
-        <p>New to the platform? <a routerLink="/register">Create an account</a></p>
+        <p>
+          New to the platform? <a routerLink="/register">Create an account</a>
+        </p>
       </footer>
     </div>
   </div>
